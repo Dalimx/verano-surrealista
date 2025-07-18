@@ -10,19 +10,17 @@
     .camera-container {
       position:relative;
       width:320px;
-      height:427px; /* 3:4 ratio (320×427 ≈ 3:4) */
+      height:427px; /* 3:4 ratio */
       margin:1rem auto;
       overflow:hidden;
       background:#111;
     }
     .camera-container video,
     .camera-container img {
-      position:absolute;
-      top:0; left:0;
-      width:100%; height:100%;
-      object-fit:cover;
+      position:absolute; top:0; left:0;
+      width:100%; height:100%; object-fit:cover;
     }
-    button, textarea {
+    button, textarea, a {
       display:block;
       width:80%; max-width:320px;
       margin:1rem auto;
@@ -31,18 +29,16 @@
       font-family:'Oswald',sans-serif;
       text-transform:uppercase;
       cursor:pointer;
+      text-decoration:none;
     }
-    textarea {
-      height:4rem;
-      resize:none;
-    }
+    textarea { height:4rem; resize:none; }
     .hidden { display:none; }
   </style>
 </head>
 <body>
   <h1>Publicación 3:4</h1>
 
-  <!-- Pantalla de cámara -->
+  <!-- Cámara -->
   <div id="step-camera">
     <div class="camera-container">
       <video id="video" autoplay playsinline></video>
@@ -52,14 +48,15 @@
     <button id="captureBtn" class="hidden">Capturar Foto</button>
   </div>
 
-  <!-- Pantalla de resultado -->
+  <!-- Resultado -->
   <div id="step-result" class="hidden">
     <canvas id="canvas" width="320" height="427"></canvas>
     <button id="downloadBtn">Descargar Foto</button>
     <textarea id="hashtags" readonly>
-#VeranoSurrealista #EnigmaDalí #DesafíoDalí
+#VeranoSurrealista #DesafioDaliEnMéxico #PlanBenDDaliMX #Enigmadalinianoddmx
     </textarea>
     <button id="copyBtn">Copiar Hashtags</button>
+    <a href="https://www.instagram.com/desafiodalimx/" target="_blank">Síguenos en Instagram</a>
   </div>
 
   <script>
@@ -71,14 +68,14 @@
     const overlay    = document.getElementById('overlay');
     const canvas     = document.getElementById('canvas');
     const ctx        = canvas.getContext('2d');
-    const hashtags   = document.getElementById('hashtags');
     const stepCam    = document.getElementById('step-camera');
     const stepRes    = document.getElementById('step-result');
+    const hashtags   = document.getElementById('hashtags');
     let stream;
 
     startBtn.onclick = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
         video.srcObject = stream;
         startBtn.classList.add('hidden');
         captureBtn.classList.remove('hidden');
@@ -88,9 +85,9 @@
     };
 
     captureBtn.onclick = () => {
-      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-      ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
-      stream.getTracks().forEach(t => t.stop());
+      ctx.drawImage(video,0,0,canvas.width,canvas.height);
+      ctx.drawImage(overlay,0,0,canvas.width,canvas.height);
+      stream.getTracks().forEach(t=>t.stop());
       stepCam.classList.add('hidden');
       stepRes.classList.remove('hidden');
     };
