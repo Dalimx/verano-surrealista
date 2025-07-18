@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verano Surrealista – Desafío Dalí</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box }
+    body { background:#000; color:#fff; font-family:'Oswald',sans-serif; text-transform:uppercase; }
+    .hidden { display:none; }
+    .container { max-width:500px; margin:2rem auto; padding:0 1rem; text-align:center; }
+    h1 { margin-bottom:1rem; }
+    select, button, textarea {
+      font-family:'Oswald',sans-serif;
+      text-transform:uppercase;
+      color:#fff;
+      background:#222f3f;
+      border:2px solid #222f3f;
+      padding:.75rem 1rem;
+      margin:.5rem 0;
+    }
+    select, textarea { width:100%; }
+    button { cursor:pointer; }
+    textarea { height:4rem; resize:none; }
+    #video, #overlay, canvas {
+      width:100%; height:auto; display:block; margin:1rem auto;
+    }
+    .video-container { position:relative; }
+    .video-container #video,
+    .video-container #overlay {
+      position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover;
+    }
+    .video-container { width:100%; max-width:500px; margin:1rem auto; padding-top:133.33%; /* 3:4 */ background:#000; overflow:hidden; }
+  </style>
+</head>
+<body>
+  <div class="container" id="page-setup">
+    <h1>Verano Surrealista</h1>
+    <label for="frameSelect">Selecciona marco:</label>
+    <select id="frameSelect">
+      <option value="historia">Historia (9:16)</option>
+      <option value="publicacion">Publicación (3:4)</option>
+    </select>
+    <button id="startBtn">Iniciar Cámara</button>
+  </div>
+
+  <div class="container hidden" id="page-camera">
+    <h1>Toma tu foto</h1>
+    <div class="video-container">
+      <video id="video" autoplay playsinline></video>
+      <img id="overlay">
+    </div>
+    <button id="captureBtn">Capturar Foto</button>
+  </div>
+
+  <div class="container hidden" id="page-result">
+    <h1>Descarga tu foto</h1>
+    <canvas id="canvas"></canvas>
+    <button id="downloadBtn">Descargar Foto</button>
+    <h1>¡Comparte en redes!</h1>
+    <textarea id="hashtags" readonly>#VeranoSurrealista #EnigmaDalí #DesafíoDalí</textarea>
+    <button id="copyBtn">Copiar Hashtags</button>
+    <button id="restartBtn">Otra Foto</button>
+  </div>
+
+  <script>
+    const urls = {
+      historia:   'assets/frame_historia.png',
+      publicacion:'assets/frame_publicacion.png'
+    };
+    const pageSetup  = document.getElementById('page-setup');
+    const pageCam    = document.getElementById('page-camera');
+    const pageRes    = document.getElementById('page-result');
+    const frameSel   = document.getElementById('frameSelect');
+    const startBtn   = document.getElementById('startBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const downloadBtn= document.getElementById('downloadBtn');
+    const copyBtn    = document.getElementById('copyBtn');
+    const restartBtn = document.getElementById('restartBtn');
+    const video      = document.getElementById('video');
+    const overlay    = document.getElementById('overlay');
+    const canvas     = document.getElementById('canvas');
+    const hashtags   = document.getElementById('hashtags');
+    let stream;
+
+    function show(page) {
+      [pageSetup, pageCam, pageRes].forEach(p=>p.classList.add('hidden'));
+      page.classList.remove('hidden');
+    }
+
+    startBtn.onclick = async () => {
+      overlay.src = urls[frameSel.value];
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
+        video.srcObject = stream;
+        show(pageCam);
+      } catch {
+        alert('No se pudo acceder a la cámara.');
+      }
+    };
+
+    captureBtn.onclick = () => {
+      const w = video.videoWidth, h = video.videoHeight;
+      const context = canvas.getContext('2d');
+      canvas.width = w; canvas.height = h;
+      context.drawImage(video,0,0,w,h);
+      context.drawImage(overlay,0,0,w,h);
+      show(pageRes);
+      stream.getTracks().forEach(t=>t.stop());
+    };
+
+    downloadBtn.onclick = () => {
+      const link = document.createElement('a');
+      link.download = 'foto-surrealista.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    };
+
+    copyBtn.onclick = () => {
+      hashtags.select();
+      document.execCommand('copy');
+      alert('Hashtags copiados');
+    };
+
+    restartBtn.onclick = () => show(pageSetup);
+
+    show(pageSetup);
+  </script>
+</body>
+</html>
