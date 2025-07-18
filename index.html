@@ -3,91 +3,98 @@
 <head>
   <meta charset="UTF-8">
   <title>Verano Surrealista – Publicación</title>
-  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400&family=Raleway&display=swap" rel="stylesheet">
   <style>
     * { margin:0; padding:0; box-sizing:border-box }
-    body { background: #000; color: #fff; font-family: 'Oswald', sans-serif; text-transform: uppercase; }
-    .container { max-width: 400px; margin: 2rem auto; padding: 0 1rem; }
-    h1 { text-align: center; margin-bottom: 1.5rem; }
-    .camera-container {
-      position: relative;
-      width: 100%;
-      /* 3:4 aspect ratio (height/width * 100%) = 133.33% */
-      padding-top: 133.33%;
-      background: #222;
-      overflow: hidden;
-      margin-bottom: 1rem;
-    }
-    .camera-container video,
-    .camera-container img {
-      position: absolute;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      object-fit: cover;
-    }
+    body { background:#000; color:#fff; font-family:'Raleway',sans-serif; }
+    .container { max-width:400px; margin:2rem auto; text-align:center; }
+    h1 { font-family:'Oswald',sans-serif; text-transform:uppercase; margin-bottom:1rem; }
+    input[type="file"] { display:block; margin:1rem auto; color:#fff; }
+    canvas { display:block; margin:1rem auto; background:#222; }
     button {
-      background: #222f3f;
-      color: #fff;
-      border: none;
-      padding: .75rem 1.5rem;
-      cursor: pointer;
-      margin: .5rem .25rem 0 .25rem;
-      width: calc(50% - .5rem);
+      background:#222f3f; color:#fff; border:none;
+      padding:.75rem 1.5rem; cursor:pointer; font-family:'Oswald',sans-serif;
+      text-transform:uppercase; margin-top:1rem;
     }
+    .instructions {
+      font-family:'Oswald',sans-serif;
+      text-transform:uppercase;
+      color:#fff;
+      margin:1rem 0;
+      line-height:1.4;
+    }
+    .hidden { display:none; }
   </style>
 </head>
 <body>
-  <div class="container">
+
+  <!-- Página principal: carga y captura -->
+  <div class="container" id="page-app">
     <h1>Publicación 3:4</h1>
-    <div class="camera-container" id="camContainer">
-      <video id="video" autoplay playsinline></video>
-      <img id="overlay" src="assets/Marcopublicacion.png" alt="Marco Publicación">
-    </div>
-    <div style="text-align:center;">
-      <button id="startBtn">Iniciar Cámara</button>
-      <button id="captureBtn" disabled>Capturar y Descargar</button>
-    </div>
+    <input type="file" id="photoInput" accept="image/*">
+    <canvas id="canvas" width="300" height="400"></canvas>
+    <button id="downloadBtn" disabled>Descargar Foto</button>
+  </div>
+
+  <!-- Página final: instrucciones para redes -->
+  <div class="container hidden" id="page-final">
+    <h1>¡Listo!</h1>
+    <p class="instructions">
+      Sube tu foto a tus redes sociales, etiquétenos como <strong>@desafiodalimx</strong> y utiliza los hashtags:
+    </p>
+    <p class="instructions">
+      #VeranoSurrealista  #EnigmaDalí  #DesafíoDalí
+    </p>
   </div>
 
   <script>
-    const startBtn   = document.getElementById('startBtn');
-    const captureBtn = document.getElementById('captureBtn');
-    const video      = document.getElementById('video');
-    const overlay    = document.getElementById('overlay');
+    const photoInput  = document.getElementById('photoInput');
+    const canvas      = document.getElementById('canvas');
+    const ctx         = canvas.getContext('2d');
+    const downloadBtn = document.getElementById('downloadBtn');
+    const pageApp     = document.getElementById('page-app');
+    const pageFinal   = document.getElementById('page-final');
+    const frameImg    = new Image();
+    frameImg.src      = 'assets/Marcopublicacion.png'; // tu PNG 300×400
 
-    let stream;
+    photoInput.onchange = () => {
+      const file = photoInput.files[0];
+      if (!file) return;
+      const img = new Image();
+      img.onload = () => {
+        const cw = canvas.width, ch = canvas.height;
+        const rPhoto = img.width / img.height;
+        const rCanvas= cw / ch;
+        let dw, dh, dx, dy;
 
-    startBtn.onclick = async () => {
-      try {
-        stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
-        video.srcObject = stream;
-        startBtn.disabled = true;
-        captureBtn.disabled = false;
-      } catch (e) {
-        alert('No se pudo acceder a la cámara.');
-      }
+        if (rPhoto > rCanvas) {
+          dh = ch;
+          dw = dh * rPhoto;
+          dx = (cw - dw) / 2;
+          dy = 0;
+        } else {
+          dw = cw;
+          dh = dw / rPhoto;
+          dx = 0;
+          dy = (ch - dh) / 2;
+        }
+
+        ctx.clearRect(0,0,cw,ch);
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.drawImage(frameImg, 0, 0, cw, ch);
+        downloadBtn.disabled = false;
+      };
+      img.src = URL.createObjectURL(file);
     };
 
-    captureBtn.onclick = () => {
-      const w = video.videoWidth;
-      const h = video.videoHeight;
-      const canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      const ctx = canvas.getContext('2d');
-      // Dibuja el video
-      ctx.drawImage(video, 0, 0, w, h);
-      // Dibuja el marco
-      ctx.drawImage(overlay, 0, 0, w, h);
-      // Descarga
+    downloadBtn.onclick = () => {
       const link = document.createElement('a');
       link.download = 'foto-publicacion.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
-      // Detener cámara
-      stream.getTracks().forEach(t => t.stop());
-      startBtn.disabled = false;
-      captureBtn.disabled = true;
+      // Mostrar la página final
+      pageApp.classList.add('hidden');
+      pageFinal.classList.remove('hidden');
     };
   </script>
 </body>
