@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Verano Surrealista – Foto Única</title>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400&display=swap" rel="stylesheet">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box }
+    body { background:#000; color:#fff; font-family:'Oswald',sans-serif; text-transform:uppercase; }
+    .container { max-width:360px; margin:2rem auto; text-align:center; }
+    h1 { margin-bottom:1rem; }
+    input[type="file"] { display:block; margin:1rem auto; color:#fff; }
+    canvas { display:block; width:100%; background:#222; }
+    button, textarea {
+      background:#222f3f; color:#fff; border:none;
+      padding:.75rem 1rem; margin:1rem auto; display:block;
+      font-family:'Oswald',sans-serif; text-transform:uppercase;
+      cursor:pointer; width:90%;
+    }
+    textarea { height:4rem; resize:none; }
+    .hidden { display:none; }
+  </style>
+</head>
+<body>
+  <div class="container" id="page-photo">
+    <h1>Tu foto</h1>
+    <input type="file" id="photoInput" accept="image/*" capture="environment">
+    <canvas id="canvas" width="360" height="480"></canvas>
+    <button id="downloadBtn" disabled>Descargar con Marco</button>
+  </div>
+
+  <div class="container hidden" id="page-share">
+    <h1>¡Comparte!</h1>
+    <textarea id="hashtags" readonly>
+#VeranoSurrealista #EnigmaDalí #DesafíoDalí
+    </textarea>
+    <button id="copyBtn">Copiar Hashtags</button>
+  </div>
+
+  <script>
+    const photoInput   = document.getElementById('photoInput');
+    const canvas       = document.getElementById('canvas');
+    const ctx          = canvas.getContext('2d');
+    const downloadBtn  = document.getElementById('downloadBtn');
+    const pagePhoto    = document.getElementById('page-photo');
+    const pageShare    = document.getElementById('page-share');
+    const copyBtn      = document.getElementById('copyBtn');
+    const hashtags     = document.getElementById('hashtags');
+
+    // Carga tu marco único aquí:
+    const frameImg = new Image();
+    frameImg.src = 'assets/frame.png'; // Coloca aquí tu PNG de marco (360×480 ideal)
+
+    photoInput.onchange = () => {
+      const file = photoInput.files[0];
+      if (!file) return;
+
+      const img = new Image();
+      img.onload = () => {
+        // Ajusta foto dentro del canvas 360×480
+        const cw = canvas.width, ch = canvas.height;
+        const rPhoto = img.width / img.height;
+        const rCanvas= cw / ch;
+        let dw, dh, dx, dy;
+
+        if (rPhoto > rCanvas) {
+          dh = ch;
+          dw = dh * rPhoto;
+          dx = (cw - dw) / 2;
+          dy = 0;
+        } else {
+          dw = cw;
+          dh = dw / rPhoto;
+          dx = 0;
+          dy = (ch - dh) / 2;
+        }
+
+        ctx.clearRect(0,0,cw,ch);
+        ctx.drawImage(img, dx, dy, dw, dh);
+        ctx.drawImage(frameImg, 0, 0, cw, ch);
+        downloadBtn.disabled = false;
+      };
+      img.src = URL.createObjectURL(file);
+    };
+
+    downloadBtn.onclick = () => {
+      const link = document.createElement('a');
+      link.download = 'foto-surrealista.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      // Muestra página de compartir
+      pagePhoto.classList.add('hidden');
+      pageShare.classList.remove('hidden');
+    };
+
+    copyBtn.onclick = () => {
+      hashtags.select();
+      document.execCommand('copy');
+      alert('Hashtags copiados');
+    };
+  </script>
+</body>
+</html>
