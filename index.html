@@ -2,35 +2,62 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Verano Surrealista – Publicación 3:4</title>
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
-    body { background:#000; color:#fff; font-family:sans-serif; text-align:center; }
-    h1 { font-family:'Oswald',sans-serif; text-transform:uppercase; margin:1rem 0; }
+    html, body { width:100%; height:100%; background:#000; color:#fff; font-family:sans-serif; }
+    body { text-align:center; font-size: calc(1rem + 0.5vw); }
+    h1 {
+      font-family:'Oswald',sans-serif;
+      text-transform:uppercase;
+      font-size: calc(1.5rem + 0.5vw);
+      margin:1rem 0;
+    }
     .camera-container {
       position:relative;
-      width:320px; height:427px; /* 3:4 ratio */
-      margin:1rem auto; overflow:hidden; background:#111;
+      width:100%;
+      max-width:600px;
+      margin:1rem auto;
+      aspect-ratio:3/4;
+      overflow:hidden;
+      background:#111;
     }
     .camera-container video,
     .camera-container img {
-      position:absolute; top:0; left:0;
-      width:100%; height:100%; object-fit:cover;
+      position:absolute;
+      top:0; left:0;
+      width:100%; height:100%;
+      object-fit:cover;
     }
     button, textarea, a {
-      display:block; width:80%; max-width:320px;
-      margin:1rem auto; background:#222f3f; color:#fff;
-      border:none; padding:.75rem; font-family:'Oswald',sans-serif;
-      text-transform:uppercase; cursor:pointer; text-decoration:none;
+      display:block;
+      width:90%;
+      max-width:600px;
+      margin:1rem auto;
+      background:#222f3f;
+      color:#fff;
+      border:none;
+      padding:calc(0.75rem + 0.25vw);
+      font-family:'Oswald',sans-serif;
+      text-transform:uppercase;
+      font-size: calc(0.9rem + 0.3vw);
+      cursor:pointer;
+      text-decoration:none;
     }
-    textarea { height:4rem; resize:none; }
+    textarea {
+      height:5rem;
+      resize:none;
+      line-height:1.4;
+    }
     .hidden { display:none; }
   </style>
 </head>
 <body>
+
   <h1>Publicación 3:4</h1>
 
-  <!-- Paso 1: cámara -->
+  <!-- Paso 1: Cámara -->
   <div id="step-camera">
     <div class="camera-container">
       <video id="video" autoplay playsinline></video>
@@ -40,20 +67,15 @@
     <button id="captureBtn" class="hidden">Capturar Foto</button>
   </div>
 
-  <!-- Paso 2: resultado y hashtags -->
+  <!-- Paso 2: Resultado -->
   <div id="step-result" class="hidden">
-    <canvas id="canvas" width="320" height="427"></canvas>
+    <canvas id="canvas" width="600" height="800" style="max-width:100%; height:auto;"></canvas>
     <button id="downloadBtn">Descargar Foto</button>
     <textarea id="hashtags" readonly>
 #VeranoSurrealista #DesafioDaliEnMéxico #PlanBenDDaliMX #Enigmadalinianoddmx
     </textarea>
     <button id="copyBtn">Copiar Hashtags</button>
-  </div>
-
-  <!-- Paso 3: volver al inicio -->
-  <div id="step-done" class="hidden">
-    <h1>¡Hecho!</h1>
-    <a href="https://sites.google.com/view/enigma-daliniano/home" target="_blank">
+    <a id="homeBtn" href="https://sites.google.com/view/enigma-daliniano/home" target="_blank">
       Volver al inicio
     </a>
   </div>
@@ -63,24 +85,26 @@
     const captureBtn  = document.getElementById('captureBtn');
     const downloadBtn = document.getElementById('downloadBtn');
     const copyBtn     = document.getElementById('copyBtn');
+    const homeBtn     = document.getElementById('homeBtn');
     const video       = document.getElementById('video');
     const overlay     = document.getElementById('overlay');
     const canvas      = document.getElementById('canvas');
     const ctx         = canvas.getContext('2d');
-    const hashtags    = document.getElementById('hashtags');
     const stepCam     = document.getElementById('step-camera');
     const stepRes     = document.getElementById('step-result');
-    const stepDone    = document.getElementById('step-done');
+    const hashtags    = document.getElementById('hashtags');
     let stream;
 
-    function show(section) {
-      [stepCam, stepRes, stepDone].forEach(el => el.classList.add('hidden'));
-      section.classList.remove('hidden');
+    function show(el) {
+      [stepCam, stepRes].forEach(s => s.classList.add('hidden'));
+      el.classList.remove('hidden');
     }
 
     startBtn.onclick = async () => {
       try {
-        stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:'environment' } });
+        stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        });
         video.srcObject = stream;
         startBtn.classList.add('hidden');
         captureBtn.classList.remove('hidden');
@@ -90,8 +114,10 @@
     };
 
     captureBtn.onclick = () => {
+      // Dibuja video y overlay en canvas
       ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
       ctx.drawImage(overlay, 0, 0, canvas.width, canvas.height);
+      // Detiene cámara
       stream.getTracks().forEach(t => t.stop());
       show(stepRes);
     };
@@ -101,7 +127,6 @@
       link.download = 'foto-publicacion.png';
       link.href = canvas.toDataURL('image/png');
       link.click();
-      show(stepDone);
     };
 
     copyBtn.onclick = () => {
@@ -110,9 +135,8 @@
       alert('Hashtags copiados');
     };
 
-    // Inicia en cámara
+    // Inicial
     show(stepCam);
   </script>
 </body>
 </html>
-
